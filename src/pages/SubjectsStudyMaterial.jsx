@@ -12,6 +12,8 @@ export default function SubjectsStudyMaterial() {
   const { activeCourse } = useCourse();
 
   const [subjects, setSubjects] = useState([]);
+  const [resourceCounts, setResourceCounts] = useState({});
+  const [resourceCountsReady, setResourceCountsReady] = useState(false);
 const subjectImages = {
     "science": "/images/sci.jpeg",
     "mathematics": "/images/Math.png",
@@ -26,13 +28,13 @@ const subjectImages = {
     "english (footprints without feet)": "/images/eng.jpeg",
     "english (snapshots)": "/images/eng.jpeg",
 
-    "4a: english – honeydew (main reader)": "/images/eng.jpeg",
-    "4a: english – main reader (beehive)": "/images/eng.jpeg",
-    "4b: english – it so happened (supplementary reader)": "/images/eng.jpeg",
-    "4b: english – supplementary (moments)": "/images/eng.jpeg",
-    "4a: english – main reader (first flight)": "/images/eng.jpeg",
-    "4b: english – supplementary (footprints without feet)": "/images/eng.jpeg",
-    "4c: english – grammar & writing skills": "/images/eng.jpeg",
+    "4a: english - honeydew (main reader)": "/images/eng.jpeg",
+    "4a: english - main reader (beehive)": "/images/eng.jpeg",
+    "4b: english - it so happened (supplementary reader)": "/images/eng.jpeg",
+    "4b: english - supplementary (moments)": "/images/eng.jpeg",
+    "4a: english - main reader (first flight)": "/images/eng.jpeg",
+    "4b: english - supplementary (footprints without feet)": "/images/eng.jpeg",
+    "4c: english - grammar & writing skills": "/images/eng.jpeg",
 
     "hindi - vasant iii + grammar (mil)": "/images/hindi.png",
     "hindi (aroh i)": "/images/hindi.png",
@@ -49,13 +51,13 @@ const subjectImages = {
     "social science (economics)": "/images/eco.jpeg",
 
     "3a: social science - history (our pasts iii)": "/images/history.jpeg",
-    "3b: social science – geography (resources and development)": "/images/geography.jpeg",
+    "3b: social science - geography (resources and development)": "/images/geography.jpeg",
     "3c: social science - civics (social and political life iii)": "/images/Civics.jpg",
 
-    "3a: social science – history": "/images/history.jpeg",
-    "3b: social science – geography": "/images/geography.jpg",
-    "3c: social science – civics": "/images/Civics.jpg",
-    "3d: social science – economics": "/images/eco.jpeg",
+    "3a: social science - history": "/images/history.jpeg",
+    "3b: social science - geography": "/images/geography.jpg",
+    "3c: social science - civics": "/images/Civics.jpg",
+    "3d: social science - economics": "/images/eco.jpeg",
 
     "history": "/images/history.jpeg",
     "geography (india)": "/images/geography.jpg",
@@ -81,19 +83,26 @@ const subjectImages = {
 
     "sociology": "/images/sociology.jpeg",
   };
-  function getSubjectImage(subjectName) {
-    const normalized = subjectName?.toLowerCase().trim() || "";
+ function clean(text) {
+  return text
+    ?.toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]/g, "") || "";
+}
 
-    const sortedKeys = Object.keys(subjectImages).sort(
-      (a, b) => b.length - a.length
-    );
+function getSubjectImage(subjectName) {
+  const normalized = clean(subjectName);
 
-    const matchedKey = sortedKeys.find((key) =>
-      normalized.includes(key.toLowerCase())
-    );
+  const sortedKeys = Object.keys(subjectImages).sort(
+    (a, b) => b.length - a.length
+  );
 
-    return matchedKey ? subjectImages[matchedKey] : "/images/default.png";
-  }
+  const matchedKey = sortedKeys.find((key) =>
+    normalized.includes(clean(key))
+  );
+
+  return matchedKey ? subjectImages[matchedKey] : "/images/default.png";
+}
 
   useEffect(() => {
 
@@ -111,6 +120,29 @@ const subjectImages = {
     fetchSubjects();
 
   }, [activeCourse]);
+
+  useEffect(() => {
+    if (subjects.length === 0) return;
+
+    async function fetchResourceCounts() {
+      const results = await Promise.allSettled(
+        subjects.map(async (subject) => {
+          const res = await api.get(`/materials/subjects/${subject.id}/materials/`);
+          return { id: subject.id, count: (res.data || []).length };
+        })
+      );
+      const counts = {};
+      results.forEach((result) => {
+        if (result.status === "fulfilled") {
+          counts[result.value.id] = result.value.count;
+        }
+      });
+      setResourceCounts(counts);
+      setResourceCountsReady(true);
+    }
+
+    fetchResourceCounts();
+  }, [subjects]);
 
   const handleSubjectClick = (id) => {
     navigate(`/study-material/list/${id}`);
@@ -135,10 +167,12 @@ const subjectImages = {
         item.teachers?.length
           ? item.teachers.map(t => t.name).join(", ")
           : "No teacher assigned"
-    }
-    img={getSubjectImage(item.name)}
-    onClick={() => handleSubjectClick(item.id)}
-  />
+      }
+      img={getSubjectImage(item.name)}
+      taskCount={resourceCountsReady ? (resourceCounts[item.id] ?? 0) : undefined}
+      taskLabel="Resource"
+      onClick={() => handleSubjectClick(item.id)}
+    />
 ))}
 
         </div>

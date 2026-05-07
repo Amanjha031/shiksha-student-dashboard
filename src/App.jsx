@@ -33,10 +33,13 @@ import LiveSessionDetail from "./pages/LiveSessionDetail";
 import LiveSessions from "./pages/LiveSessions";
 import PrivateSessions from "./pages/PrivateSessions";
 import PrivateSessionLive from "./pages/PrivateSessionLive";
+import StudyGroups from "./pages/StudyGroups";
+import StudyGroupLive from "./pages/StudyGroupLive";
 
 import Quiz from "./pages/Quiz";
 import Teachers from "./pages/Teachers";
 import TeacherDetail from "./pages/TeacherDetail";
+import MyCourseDetail from "./pages/MyCourseDetail";
 
 function RequireStudentAuth({ children }) {
   return children;
@@ -148,15 +151,24 @@ export default function App() {
                 element={<PrivateSessions />}
               />
 
+              <Route path="study-groups" element={<StudyGroups />} />
+
               <Route path="quiz" element={<Quiz />} />
 
               <Route path="teachers" element={<Teachers />} />
               <Route path="teachers/:id" element={<TeacherDetail />} />
+
+              <Route path="my-courses/:courseId" element={<MyCourseDetail />} />
             </Route>
 
             <Route
               path="/private-session/live/:id"
               element={<PrivateSessionLive />}
+            />
+
+            <Route
+              path="/study-group/live/:id"
+              element={<StudyGroupLive />}
             />
           </Routes>
         </BrowserRouter>

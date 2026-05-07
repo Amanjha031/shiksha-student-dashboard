@@ -5,47 +5,54 @@ const TYPE_LABELS = {
   ASSIGNMENT: "Assignment",
   SESSION: "Live Session",
   QUIZ: "Quiz",
+  SUBMISSION: "Submission",
 };
 
 const TYPE_CLASSES = {
   ASSIGNMENT: "assignments",
   SESSION: "livesessions",
   QUIZ: "quiz",
+  SUBMISSION: "submission",
 };
 
-const TYPE_ROUTES = {
-  ASSIGNMENT: "/assignments",
-  SESSION: "/live-sessions",
-  QUIZ: "/subjects/quiz",
-};
-
-export default function NotificationCard({ title, subject, teacher, time, time2, day, type }) {
+export default function NotificationCard({ notification, onRead }) {
   const navigate = useNavigate();
-
-  const handleClick = () => {
-    const route = TYPE_ROUTES[type];
-    if (route) navigate(route);
-  };
-
+  const item = notification || {};
+  const { id, type, title, subject_name, subject_id, due_date, created_at, is_read } = item;
   const typeClass = TYPE_CLASSES[type] || "";
   const displayLabel = TYPE_LABELS[type] || type;
 
+  const formattedDate = due_date
+    ? new Date(due_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })
+    : created_at
+    ? new Date(created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    : null;
+
+  const handleClick = () => {
+    if (!is_read && id && onRead) onRead(id);
+    if (subject_id) {
+      if (type === "ASSIGNMENT") { navigate("/subjects/" + subject_id + "/assignments"); return; }
+      if (type === "QUIZ") { navigate("/subjects/quiz/" + subject_id); return; }
+      if (type === "SESSION") { navigate("/live-sessions"); return; }
+      navigate("/subjects/" + subject_id);
+    } else {
+      if (type === "ASSIGNMENT") navigate("/assignments");
+      else if (type === "QUIZ") navigate("/subjects/quiz");
+      else if (type === "SESSION") navigate("/live-sessions");
+    }
+  };
+
   return (
-    <div
-      className={`notifItem notifItem--${typeClass}`}
-      onClick={handleClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => e.key === "Enter" && handleClick()}
-    >
+    <div className={"notifItem notifItem--" + typeClass + (!is_read ? " notifItem--unread" : "")} onClick={handleClick} role="button" tabIndex={0} style={{cursor:"pointer"}}>
       <div className="notifItem__bar" />
-      {day && <span className="notifItem__badge">{day}</span>}
+      {!is_read && <span className="notifItem__unreadDot" />}
       <div className="notifItem__content">
+        <div className="notifItem__header">
+          <span className={"notifItem__badge notifItem__badge--" + typeClass}>{displayLabel}</span>
+        </div>
         <p className="notifItem__title">{title}</p>
-        <p className="notifItem__sub">{subject}</p>
-        <p className="notifItem__sub">{teacher}</p>
-        <p className="notifItem__sub">{time}</p>
-        {time2 && <p className="notifItem__time2">{time2}</p>}
+        {subject_name && <p className="notifItem__sub">{subject_name}</p>}
+        {formattedDate && <p className="notifItem__time">{formattedDate}</p>}
       </div>
     </div>
   );

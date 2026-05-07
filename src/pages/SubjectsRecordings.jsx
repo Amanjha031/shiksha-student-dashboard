@@ -26,13 +26,13 @@ export default function SubjectsRecordings() {
     "english (footprints without feet)": "/images/eng.jpeg",
     "english (snapshots)": "/images/eng.jpeg",
 
-    "4a: english – honeydew (main reader)": "/images/eng.jpeg",
-    "4a: english – main reader (beehive)": "/images/eng.jpeg",
-    "4b: english – it so happened (supplementary reader)": "/images/eng.jpeg",
-    "4b: english – supplementary (moments)": "/images/eng.jpeg",
-    "4a: english – main reader (first flight)": "/images/eng.jpeg",
-    "4b: english – supplementary (footprints without feet)": "/images/eng.jpeg",
-    "4c: english – grammar & writing skills": "/images/eng.jpeg",
+    "4a: english - honeydew (main reader)": "/images/eng.jpeg",
+    "4a: english - main reader (beehive)": "/images/eng.jpeg",
+    "4b: english - it so happened (supplementary reader)": "/images/eng.jpeg",
+    "4b: english - supplementary (moments)": "/images/eng.jpeg",
+    "4a: english - main reader (first flight)": "/images/eng.jpeg",
+    "4b: english - supplementary (footprints without feet)": "/images/eng.jpeg",
+    "4c: english - grammar & writing skills": "/images/eng.jpeg",
 
     "hindi - vasant iii + grammar (mil)": "/images/hindi.png",
     "hindi (aroh i)": "/images/hindi.png",
@@ -49,13 +49,13 @@ export default function SubjectsRecordings() {
     "social science (economics)": "/images/eco.jpeg",
 
     "3a: social science - history (our pasts iii)": "/images/history.jpeg",
-    "3b: social science – geography (resources and development)": "/images/geography.jpeg",
+    "3b: social science - geography (resources and development)": "/images/geography.jpeg",
     "3c: social science - civics (social and political life iii)": "/images/Civics.jpg",
 
-    "3a: social science – history": "/images/history.jpeg",
-    "3b: social science – geography": "/images/geography.jpg",
-    "3c: social science – civics": "/images/Civics.jpg",
-    "3d: social science – economics": "/images/eco.jpeg",
+    "3a: social science - history": "/images/history.jpeg",
+    "3b: social science - geography": "/images/geography.jpg",
+    "3c: social science - civics": "/images/Civics.jpg",
+    "3d: social science - economics": "/images/eco.jpeg",
 
     "history": "/images/history.jpeg",
     "geography (india)": "/images/geography.jpg",
@@ -82,13 +82,26 @@ export default function SubjectsRecordings() {
     "sociology": "/images/sociology.jpeg",
   };
 
-  function getSubjectImage(subjectName) {
-    const normalized = subjectName?.toLowerCase().trim() || "";
-    const sortedKeys = Object.keys(subjectImages).sort((a, b) => b.length - a.length);
-    const matchedKey = sortedKeys.find((key) => normalized.includes(key.toLowerCase()));
-    return matchedKey ? subjectImages[matchedKey] : "/images/default.png";
-  }
+  function clean(text) {
+  return text
+    ?.toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]/g, "") || "";
+}
 
+function getSubjectImage(subjectName) {
+  const normalized = clean(subjectName);
+
+  const sortedKeys = Object.keys(subjectImages).sort(
+    (a, b) => b.length - a.length
+  );
+
+  const matchedKey = sortedKeys.find((key) =>
+    normalized.includes(clean(key))
+  );
+
+  return matchedKey ? subjectImages[matchedKey] : "/images/default.png";
+}
   useEffect(() => {
     if (!activeCourse) return;
 
@@ -123,7 +136,8 @@ export default function SubjectsRecordings() {
               subject={item.name}
               teacher={item.teachers?.[0]?.name || "Teacher"}
               img={getSubjectImage(item.name)}
-              recordingsCount={item.recordings_count ?? 0}
+              taskCount={item.recordings_count ?? 0}
+              taskLabel="Video"
               onClick={() => handleSubjectClick(item.id)}
             />
           ))}

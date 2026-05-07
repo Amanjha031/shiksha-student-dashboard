@@ -1,21 +1,27 @@
 console.log("=== MY NEW SIDEBAR ===");
-import { NavLink, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "../styles/sidebar.css";
 import logo from "../assets/Vector.svg";
+import { useCourse } from "../contexts/CourseContext";
 
 // icons
 import { FiHome } from "react-icons/fi";
 import { MdDashboardCustomize } from "react-icons/md";
 import { BsBook } from "react-icons/bs";
 import { BiVideo } from "react-icons/bi";
-import { FaClipboardList, FaBookOpen } from "react-icons/fa";
-import { RiLiveLine, RiLockLine } from "react-icons/ri";
+import { FaClipboardList, FaBookOpen, FaGraduationCap } from "react-icons/fa";
+import { RiLiveLine, RiLockLine, RiGroupLine } from "react-icons/ri";
 import { FaChalkboardTeacher } from "react-icons/fa";
 import { AiOutlineFileDone, AiOutlineClose } from "react-icons/ai";
+import { IoChevronDown } from "react-icons/io5";
 
 console.log("SIDEBAR LOADED - NEW VERSION");
 export default function Sidebar({ setMenuOpen }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { courses, activeCourse, selectCourse } = useCourse();
+  const [coursesOpen, setCoursesOpen] = useState(false);
 
   const isSubjectsActive =
     location.pathname.startsWith("/subjects") ||
@@ -117,6 +123,48 @@ export default function Sidebar({ setMenuOpen }) {
           </div>
         )}
 
+        {/* My Courses */}
+        {courses && courses.length > 0 && (
+          <>
+            <button
+              type="button"
+              className="sidebar__link sidebar__courseToggle"
+              onClick={() => setCoursesOpen((v) => !v)}
+              aria-expanded={coursesOpen}
+            >
+              <span className="sidebar__icon">
+                <FaGraduationCap />
+              </span>
+              <span className="sidebar__courseLabel">My Courses</span>
+              <IoChevronDown
+                className={`sidebar__chev ${coursesOpen ? "sidebar__chev--open" : ""}`}
+              />
+            </button>
+
+            {coursesOpen && (
+              <div className="sidebar__subMenu">
+                {courses.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`sidebar__subLink sidebar__courseItem ${
+                      activeCourse?.id === c.id ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      selectCourse(c.id);
+                      navigate(`/my-courses/${c.id}`);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <BsBook />
+                    <span>{c.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
         {/* Live sessions */}
         <NavLink
           className="sidebar__link"
@@ -139,6 +187,18 @@ export default function Sidebar({ setMenuOpen }) {
             <RiLockLine />
           </span>
           Private Sessions
+        </NavLink>
+
+        {/* Study Groups */}
+        <NavLink
+          className="sidebar__link"
+          to="/study-groups"
+          onClick={() => setMenuOpen(false)}
+        >
+          <span className="sidebar__icon">
+            <RiGroupLine />
+          </span>
+          Study Groups
         </NavLink>
 
         {/* Teachers */}
